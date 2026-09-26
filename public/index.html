@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TICKETVIBE - Concert Tickets Booking</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">TICKETVIBE</div>
+        <ul class="nav-links">
+            <li><a href="#" onclick="showSection('home-page')">Home</a></li>
+            <li><a href="#" onclick="showSection('home-page')">Concerts</a></li>
+            <li><a href="#">Artists</a></li>
+            <li><a href="#">My Tickets</a></li>
+            <li><a href="#">Help</a></li>
+        </ul>
+        <div class="user-actions">
+            <div class="favorites-icon" onclick="toggleFavoritesMenu()">
+                <i class="fa-solid fa-heart"></i>
+                <span id="fav-count">0</span>
+                <!-- Favorites Popup -->
+                <div id="favorites-popup" class="favorites-popup hidden">
+                    <h4>ถูกใจแล้ว</h4>
+                    <ul id="fav-list"></ul>
+                </div>
+            </div>
+            <button id="user-btn" class="login-btn" onclick="openLoginModal()">Login</button>
+        </div>
+    </nav>
+
+    <!-- Modal: Login -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+            <h2>Log in to your account</h2>
+            <p>Book your favorite concert tickets and don't miss the moment.</p>
+            <input type="text" id="username-input" placeholder="Username / Email">
+            <input type="password" placeholder="Password">
+            <button class="submit-btn" onclick="handleLogin()">Log in</button>
+            <div class="social-login">
+                <p>or continue with</p>
+                <div class="social-icons">
+                    <i class="fa-brands fa-google" onclick="mockSocialLogin('Google')"></i>
+                    <i class="fa-brands fa-facebook" onclick="mockSocialLogin('Facebook')"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SECTION: HOME / CONCERTS LIST -->
+    <main id="home-page" class="page-section">
+        <div class="hero-banner">
+            <h1>Live Music <span>Better Together</span></h1>
+            <p>จองบัตรคอนเสิร์ตที่คุณชื่นชอบ แล้วไปสร้างความทรงจำดีๆ ไปด้วยกัน</p>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="ค้นหาคอนเสิร์ต, ศิลปิน, หรือสถานที่...">
+                <button onclick="searchEvents()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+        </div>
+
+        <!-- Controls: Genre Filter & DSA Sorting -->
+        <div class="controls-container">
+            <div class="genre-list">
+                <button class="genre-btn active" onclick="filterGenre('all')">All</button>
+                <button class="genre-btn" onclick="filterGenre('pop')">Pop</button>
+                <button class="genre-btn" onclick="filterGenre('rock')">Rock</button>
+                <button class="genre-btn" onclick="filterGenre('k-pop')">K-Pop</button>
+                <button class="genre-btn" onclick="filterGenre('indie')">Indie</button>
+            </div>
+
+            <!-- DSA Sort Buttons -->
+            <div class="sort-container">
+                <label>เรียงตาม: </label>
+                <button class="sort-btn" onclick="handleSort('date')">วันที่ใกล้ที่สุด (Sort)</button>
+                <button class="sort-btn" onclick="handleSort('price')">ราคาต่ำสุด (Sort)</button>
+            </div>
+        </div>
+
+        <h2>Popular Events</h2>
+        <div id="loading" class="loading hidden">กำลังโหลดข้อมูลคอนเสิร์ต...</div>
+        <div id="events-grid" class="events-grid"></div>
+    </main>
+
+    <!-- Modal: Quick View Pop-up -->
+    <div id="quickview-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeQuickView()">&times;</span>
+            <div id="quickview-body"></div>
+        </div>
+    </div>
+
+    <!-- MAIN SECTION: BOOKING PAGE -->
+    <main id="booking-page" class="page-section hidden">
+        <button class="back-btn" onclick="showSection('home-page')">← กลับหน้าหลัก</button>
+        <div class="booking-container">
+            <div class="event-details-card" id="booking-event-info"></div>
+            
+            <div class="ticket-selection">
+                <h3>เลือกประเภทบัตร & ระบบคิว (Queue DSA)</h3>
+                <div class="zone-picker">
+                    <button class="zone-btn" onclick="selectZone('VIP', 6500)">VIP - 6,500 THB</button>
+                    <button class="zone-btn" onclick="selectZone('Zone A', 5500)">Zone A - 5,500 THB</button>
+                    <button class="zone-btn" onclick="selectZone('Zone B', 4500)">Zone B - 4,500 THB</button>
+                </div>
+
+                <!-- Stack & Undo Controls -->
+                <div class="stack-controls">
+                    <p>ประวัติการเลือก (Stack DSA): <span id="stack-history">ไม่มี</span></p>
+                    <button class="undo-btn" onclick="handleUndoStack()"> Undo (ย้อนกลับการเลือก)</button>
+                </div>
+
+                <!-- Queue System -->
+                <div class="queue-status-card">
+                    <h4>สถานะการจองคิว (Queue)</h4>
+                    <button class="submit-btn" onclick="joinQueue()">เข้าคิวจองบัตร</button>
+                    <p id="queue-info">ยังไม่ได้เข้าคิว</p>
+                    <button class="submit-btn checkout-btn" id="checkout-btn" disabled onclick="processBooking()">ยืนยันชำระเงิน</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

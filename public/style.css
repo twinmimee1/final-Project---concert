@@ -1,0 +1,212 @@
+:root {
+    --bg-dark: #0f0f12;
+    --card-bg: #1a1a24;
+    --accent-pink: #ff2a75;
+    --text-white: #ffffff;
+    --text-gray: #a0a0b0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    font-family: 'Sukhumvit Set', 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: rgba(15, 15, 18, 0.9);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--accent-pink);
+    letter-spacing: 2px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+.nav-links a {
+    color: var(--text-white);
+    text-decoration: none;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.favorites-icon {
+    position: relative;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+#fav-count {
+    background: var(--accent-pink);
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+}
+
+.favorites-popup {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    background: var(--card-bg);
+    border: 1px solid #333;
+    padding: 1rem;
+    border-radius: 8px;
+    width: 200px;
+    z-index: 200;
+}
+
+.favorites-popup.hidden { display: none; }
+
+.login-btn {
+    background: var(--accent-pink);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+/* Hero Section */
+.hero-banner {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(180deg, rgba(255,42,117,0.15) 0%, rgba(15,15,18,1) 100%);
+}
+
+.search-box {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.search-box input {
+    width: 300px;
+    padding: 10px;
+    border-radius: 20px 0 0 20px;
+    border: none;
+}
+
+.search-box button {
+    padding: 10px 15px;
+    background: var(--accent-pink);
+    border: none;
+    border-radius: 0 20px 20px 0;
+    color: white;
+    cursor: pointer;
+}
+
+/* Controls */
+.controls-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+}
+
+.genre-btn, .sort-btn {
+    background: var(--card-bg);
+    color: var(--text-white);
+    border: 1px solid #333;
+    padding: 8px 14px;
+    border-radius: 15px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.genre-btn.active {
+    background: var(--accent-pink);
+}
+
+/* Grid & Cards */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 2rem;
+}
+
+.event-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.event-card:hover { transform: translateY(-5px); }
+
+.event-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.event-card-content {
+    padding: 1rem;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.book-btn {
+    background: var(--accent-pink);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Modal System */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden { display: none; }
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    right: 15px; top: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.page-section.hidden { display: none; }
+.loading { text-align: center; padding: 2rem; color: var(--accent-pink); }
