@@ -9,121 +9,497 @@
 </head>
 <body>
 
-    <!-- Navbar -->
+    <!-- Navbar หลัก (แสดงทุกหน้า) -->
     <nav class="navbar">
         <div class="logo">TICKETVIBE</div>
         <ul class="nav-links">
-            <li><a href="#" onclick="showSection('home-page')">Home</a></li>
-            <li><a href="#" onclick="showSection('home-page')">Concerts</a></li>
-            <li><a href="#">Artists</a></li>
-            <li><a href="#">My Tickets</a></li>
+            <li><a href="#" onclick="showSection('welcome-page')">Home</a></li>
+            <li><a href="#" onclick="showSection('home-page')">Events</a></li>
             <li><a href="#">Help</a></li>
         </ul>
-        <div class="user-actions">
-            <div class="favorites-icon" onclick="toggleFavoritesMenu()">
-                <i class="fa-solid fa-heart"></i>
-                <span id="fav-count">0</span>
-                <!-- Favorites Popup -->
-                <div id="favorites-popup" class="favorites-popup hidden">
-                    <h4>ถูกใจแล้ว</h4>
-                    <ul id="fav-list"></ul>
-                </div>
+        
+        <div class="user-actions" style="display: flex; align-items: center; gap: 15px;">
+            <!-- ปุ่ม Undo / Redo -->
+            <div class="undo-redo-controls">
+                <button id="undo-btn" class="action-icon-btn" onclick="undoFavorite()" title="ย้อนกลับ (Undo)" disabled>
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+                <button id="redo-btn" class="action-icon-btn" onclick="redoFavorite()" title="ทำซ้ำ (Redo)" disabled>
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
             </div>
-            <button id="user-btn" class="login-btn" onclick="openLoginModal()">Login</button>
+
+            <!-- ปุ่มหัวใจแสดงจำนวนที่ชอบ คลิกเพื่อเปิดดูรายการ -->
+            <div class="fav-header-badge" onclick="openFavoritesModal()" style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-heart" style="color: #ff4b82;"></i>
+                <span id="fav-count" class="badge-number">0</span>
+                <span class="fav-label">ถูกใจแล้ว</span>
+            </div>
+
+            <button id="user-btn" class="login-btn" onclick="showSection('welcome-page')">Login</button>
         </div>
     </nav>
 
-    <!-- Modal: Login -->
-    <div id="login-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeLoginModal()">&times;</span>
-            <h2>Log in to your account</h2>
-            <p>Book your favorite concert tickets and don't miss the moment.</p>
-            <input type="text" id="username-input" placeholder="Username / Email">
-            <input type="password" placeholder="Password">
-            <button class="submit-btn" onclick="handleLogin()">Log in</button>
-            <div class="social-login">
-                <p>or continue with</p>
-                <div class="social-icons">
-                    <i class="fa-brands fa-google" onclick="mockSocialLogin('Google')"></i>
-                    <i class="fa-brands fa-facebook" onclick="mockSocialLogin('Facebook')"></i>
+    <!-- SECTION 1: WELCOME & LOGIN PAGE -->
+    <section id="welcome-page" class="page-section welcome-hero">
+        <div class="welcome-left">
+            <div class="brand-title">
+                <h1>CONCERT<br><span>TICKETS</span> BOOKING</h1>
+                <div class="sub-line">Music connects us</div>
+            </div>
+            <div class="features-row">
+                <div class="feature-item">
+                    <i class="fa-solid fa-ticket"></i>
+                    <p>Book Tickets<br>Easily</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-regular fa-calendar-days"></i>
+                    <p>View Event<br>Information</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-regular fa-star"></i>
+                    <p>Enjoy the Show<br>Together</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- MAIN SECTION: HOME / CONCERTS LIST -->
-    <main id="home-page" class="page-section">
-        <div class="hero-banner">
-            <h1>Live Music <span>Better Together</span></h1>
-            <p>จองบัตรคอนเสิร์ตที่คุณชื่นชอบ แล้วไปสร้างความทรงจำดีๆ ไปด้วยกัน</p>
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="ค้นหาคอนเสิร์ต, ศิลปิน, หรือสถานที่...">
-                <button onclick="searchEvents()"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <div class="welcome-right">
+            <div class="login-card">
+                <h2 class="welcome-heading">Welcome</h2>
+                <h3>Log in to your account</h3>
+                <p class="login-subtext">Book your favorite concert tickets and don't miss the moment.</p>
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="input-box">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="username-input" placeholder="Email or Username" required>
+                    </div>
+                    <div class="input-box">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" placeholder="Password" required>
+                        <i class="fa-regular fa-eye toggle-pwd"></i>
+                    </div>
+
+                    <div class="form-options">
+                        <label><input type="checkbox"> Remember me</label>
+                        <a href="#">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="submit-login-btn">Log In</button>
+                </form>
+
+                <div class="divider"><span>or continue with</span></div>
+
+                <div class="social-login-row">
+                    <button class="social-btn" onclick="mockSocialLogin('Google')"><i class="fa-brands fa-google"></i></button>
+                    <button class="social-btn" onclick="mockSocialLogin('Apple')"><i class="fa-brands fa-apple"></i></button>
+                    <button class="social-btn" onclick="mockSocialLogin('Facebook')"><i class="fa-brands fa-facebook-f"></i></button>
+                </div>
+
+                <p class="signup-text">Don't have an account? <a href="#">Sign Up</a></p>
             </div>
         </div>
+    </section>
 
-        <!-- Controls: Genre Filter & DSA Sorting -->
-        <div class="controls-container">
-            <div class="genre-list">
-                <button class="genre-btn active" onclick="filterGenre('all')">All</button>
-                <button class="genre-btn" onclick="filterGenre('pop')">Pop</button>
-                <button class="genre-btn" onclick="filterGenre('rock')">Rock</button>
-                <button class="genre-btn" onclick="filterGenre('k-pop')">K-Pop</button>
-                <button class="genre-btn" onclick="filterGenre('indie')">Indie</button>
+    <!-- SECTION 2: CONCERTS FEED PAGE -->
+    <main id="home-page" class="page-section hidden">
+        <div class="main-layout">
+            <!-- คอลัมน์ซ้าย: เนื้อหาหลัก -->
+            <div class="left-content">
+                <!-- Hero Banner -->
+                <div class="hero-banner-card">
+                    <div class="hero-overlay-text">
+                        <span class="script-font">Live Music</span>
+                        <h1>Better Together</h1>
+                        <p>จองบัตรคอนเสิร์ตที่คุณชื่นชอบ แล้วไปสร้างความทรงจำดีๆ ไปด้วยกัน ♥</p>
+                        
+                        <div class="search-bar-modern">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="search-input" placeholder="ค้นหาคอนเสิร์ต, ศิลปิน หรือสถานที่จัดงาน...">
+                            <button class="search-submit-btn" onclick="searchEvents()">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hero-decoration">
+                        <span class="handwrite-text">Good Music<br>Good Vibes<br>Always ♥</span>
+                    </div>
+                </div>
+
+                <!-- Genre & Sorting Control Bar -->
+                <div class="category-section">
+                    <div class="genre-icons-grid">
+                        <button class="genre-pill active" onclick="filterGenre('all')">
+                            <i class="fa-solid fa-music"></i>
+                            <span>All</span>
+                        </button>
+                        <button class="genre-pill" onclick="filterGenre('pop')">
+                            <i class="fa-solid fa-guitar"></i>
+                            <span>Pop</span>
+                        </button>
+                        <button class="genre-pill" onclick="filterGenre('rock')">
+                            <i class="fa-solid fa-drum"></i>
+                            <span>Rock</span>
+                        </button>
+                        <button class="genre-pill" onclick="filterGenre('hip hop')">
+                            <i class="fa-solid fa-record-vinyl"></i>
+                            <span>Hip Hop</span>
+                        </button>
+                        <button class="genre-pill" onclick="filterGenre('indie')">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span>Indie</span>
+                        </button>
+                        <button class="genre-pill" onclick="filterGenre('k-pop')">
+                            <i class="fa-solid fa-compact-disc"></i>
+                            <span>K-Pop</span>
+                        </button>
+                        <button class="genre-pill" onclick="filterGenre('edm')">
+                            <i class="fa-solid fa-headphones"></i>
+                            <span>EDM</span>
+                        </button>
+                    </div>
+
+                    <!-- DSA Sort Options -->
+                    <div class="sort-dropdown-container">
+                        <span>เรียงตาม:</span>
+                        <button class="sort-tag-btn" onclick="handleSort('date')">วันที่ใกล้ที่สุด</button>
+                        <button class="sort-tag-btn" onclick="handleSort('price')">ราคาต่ำสุด</button>
+                    </div>
+                </div>
+
+                <!-- Popular Events Feed -->
+                <div class="section-header-row">
+                    <h3>Popular Events <span class="sub-header-line">— คอนเสิร์ตที่กำลังมาแรง</span></h3>
+                    <a href="#" class="view-all-link">ดูทั้งหมด →</a>
+                </div>
+
+                <div id="loading" class="loading hidden">กำลังดึงข้อมูลคอนเสิร์ตจาก API...</div>
+                <div id="events-grid" class="events-grid-4col"></div>
             </div>
 
-            <!-- DSA Sort Buttons -->
-            <div class="sort-container">
-                <label>เรียงตาม: </label>
-                <button class="sort-btn" onclick="handleSort('date')">วันที่ใกล้ที่สุด (Sort)</button>
-                <button class="sort-btn" onclick="handleSort('price')">ราคาต่ำสุด (Sort)</button>
+            <!-- คอลัมน์ขวา: Sidebar ข้อมูล และ Banner โปรโมชัน -->
+            <aside class="right-sidebar">
+                <div class="sidebar-card feature-badge-card">
+                    <div class="badge-title">บัตรดีๆ รอคุณอยู่! ✨</div>
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fa-regular fa-circle-check"></i>
+                            <div>
+                                <strong>จองง่าย ปลอดภัย</strong>
+                                <p>มั่นใจได้ 100%</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-bolt"></i>
+                            <div>
+                                <strong>รับบัตรทันที</strong>
+                                <p>หลังชำระเงิน</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fa-headphones fa-solid"></i>
+                            <div>
+                                <strong>มีทีมซัพพอร์ต</strong>
+                                <p>พร้อมดูแลตลอด 24 ชม.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-card promo-banner-card">
+                    <div class="promo-content">
+                        <span class="handwrite-promo">More Concerts,<br>More Memories ♥</span>
+                        <button class="promo-arrow-btn"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- SECTION 3: BOOKING PAGE -->
+    <main id="booking-page" class="page-section hidden">
+        <div class="booking-page-wrapper">
+            <button class="back-btn-pill" onclick="showSection('home-page')">
+                <i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก
+            </button>
+
+            <div class="booking-grid-layout">
+                <!-- ฝั่งซ้าย: รายละเอียดคอนเสิร์ต & ผังที่นั่ง -->
+                <div class="booking-main-content">
+                    <!-- Hero Banner ในหน้าจอง -->
+                    <div class="event-hero-banner" id="booking-event-hero">
+                        <span class="world-tour-badge">• WORLD TOUR 2025</span>
+                        <h1 class="event-hero-title" id="booking-event-title">The 1975 Live in Bangkok</h1>
+                        <div class="hero-art-overlay">
+                            <span class="handwrite-art">Music Brings Us Together ♥</span>
+                        </div>
+                    </div>
+
+                    <!-- รายละเอียดข้อมูลสังเขป -->
+                    <div class="event-info-summary">
+                        <div class="info-tag-badge">CONCERT</div>
+                        <h2 id="booking-event-subtitle">The 1975 Live in Bangkok</h2>
+                        <div class="tour-subtext">WORLD TOUR 2025</div>
+                        <p class="event-desc-text">
+                            เตรียมพบกับคอนเสิร์ตเต็มรูปแบบของ The 1975 วงอินดี้ร็อกสุดฮิตจากอังกฤษ ที่จะมาพร้อมโชว์สุดพิเศษ และเพลงฮิตมากมาย ให้คุณได้ดื่มด่ำไปกับบรรยากาศและพลังแห่งดนตรีไปด้วยกัน
+                        </p>
+                        
+                        <div class="info-meta-list">
+                            <div class="meta-item">
+                                <i class="fa-regular fa-calendar-days"></i>
+                                <div><strong id="booking-event-date">15 พฤศจิกายน 2025 (เสาร์)</strong><br><span id="booking-event-time">เวลา 19:00 น.</span></div>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <div><strong id="booking-event-venue">Impact Arena เมืองทองธานี</strong><br><span>กรุงเทพฯ</span></div>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fa-solid fa-tag"></i>
+                                <div><strong>ประเภทคอนเสิร์ต</strong><br><span id="booking-event-genre">Pop / Indie Rock</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- แท็บรายละเอียด & Line Up & ผังที่นั่ง -->
+                    <div class="details-section-grid">
+                        <div class="details-card-box">
+                            <div class="card-header-title">
+                                <i class="fa-solid fa-align-left"></i> รายละเอียดคอนเสิร์ต
+                            </div>
+                            <div class="tab-nav-buttons">
+                                <button class="tab-btn active">ข้อมูลทั่วไป</button>
+                                <button class="tab-btn">ศิลปิน</button>
+                                <button class="tab-btn">แผนผังที่นั่ง</button>
+                                <button class="tab-btn">เงื่อนไขการเข้าร่วม</button>
+                            </div>
+                            <div class="tab-content-text">
+                                <p>The 1975 กลับมาอีกครั้งกับทัวร์คอนเสิร์ตระดับโลก "Live in Bangkok" พร้อมโชว์ใหม่ล่าสุดจากอัลบั้ม และเพลงฮิตที่ทุกคนคิดถึง ห้ามพลาด! โอกาสสุดท้ายที่จะได้สัมผัสพวกเขาแบบใกล้ชิดในประเทศไทย</p>
+                                <div class="quote-style">"It's not just a concert, it's a feeling." ♡</div>
+                            </div>
+                        </div>
+
+                        <!-- Line Up Card -->
+                        <div class="details-card-box">
+                            <div class="card-header-title">
+                                <i class="fa-solid fa-user-group"></i> Line Up
+                            </div>
+                            <div class="artist-lineup-item">
+                                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=300" alt="Artist" class="artist-thumb">
+                                <div class="artist-info">
+                                    <h4 id="booking-artist-name">The 1975 <span class="headliner-badge">Headliner</span></h4>
+                                    <p>Indie rock band from Manchester, UK. Known for their unique sound, emotional lyrics and unforgettable live performances.</p>
+                                    <div class="hit-songs">
+                                        <span><i class="fa-solid fa-music"></i> Hit Songs</span>
+                                        <span class="song-tag">Chocolate</span>
+                                        <span class="song-tag">Somebody Else</span>
+                                        <span class="song-tag">The Sound</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- แผนผังที่นั่ง (SVG Seat Map) -->
+                        <div class="details-card-box seatmap-card">
+                            <div class="card-header-title">
+                                <i class="fa-solid fa-map-location-dot"></i> แผนผังที่นั่ง (โดยประมาณ)
+                            </div>
+                            <div class="seatmap-container">
+                                <svg viewBox="0 0 400 280" class="svg-stage-map">
+                                    <!-- เวที STAGE -->
+                                    <rect x="130" y="20" width="140" height="30" rx="6" fill="#3a3854" stroke="#ff4b82" stroke-width="2"/>
+                                    <text x="200" y="40" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">STAGE</text>
+                                    
+                                    <!-- Zone VIP -->
+                                    <path d="M 120 60 L 280 60 L 270 110 L 130 110 Z" fill="#ff4b82" opacity="0.85"/>
+                                    <text x="200" y="90" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">VIP</text>
+
+                                    <!-- Zone A -->
+                                    <path d="M 110 115 L 290 115 L 280 160 L 120 160 Z" fill="#9d4edd" opacity="0.85"/>
+                                    <text x="200" y="142" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">Zone A</text>
+
+                                    <!-- Zone B -->
+                                    <path d="M 100 165 L 300 165 L 290 205 L 110 205 Z" fill="#3a86ef" opacity="0.85"/>
+                                    <text x="200" y="190" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">Zone B</text>
+
+                                    <!-- Zone C & D Side Blocks -->
+                                    <path d="M 50 80 L 105 80 L 105 200 L 60 180 Z" fill="#2a9d8f" opacity="0.85"/>
+                                    <text x="80" y="145" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">Zone C</text>
+
+                                    <path d="M 295 80 L 350 80 L 340 180 L 295 200 Z" fill="#e76f51" opacity="0.85"/>
+                                    <text x="320" y="145" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">Zone D</text>
+                                </svg>
+
+                                <div class="seatmap-legend">
+                                    <div class="legend-item"><span class="color-dot vip"></span> VIP</div>
+                                    <div class="legend-item"><span class="color-dot zone-a"></span> โซน A</div>
+                                    <div class="legend-item"><span class="color-dot zone-b"></span> โซน B</div>
+                                    <div class="legend-item"><span class="color-dot zone-c"></span> โซน C</div>
+                                    <div class="legend-item"><span class="color-dot zone-d"></span> โซน D</div>
+                                </div>
+                            </div>
+                            <p class="seatmap-note">* แผนผังที่นั่งอาจมีการเปลี่ยนแปลงตามความเหมาะสม</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ฝั่งขวา: แผงเลือกประเภทบัตร & สรุปราคา -->
+                <div class="booking-sidebar-panel">
+                    <div class="ticket-select-box">
+                        <div class="panel-header">
+                            <i class="fa-solid fa-ticket"></i> เลือกประเภทบัตร
+                        </div>
+
+                        <!-- รายการบัตรแต่ละโซน -->
+                        <div class="ticket-type-list">
+                            <!-- VIP -->
+                            <div class="ticket-type-card">
+                                <div class="ticket-info">
+                                    <div class="ticket-name-row">
+                                        <span class="zone-badge vip-bg"></span>
+                                        <strong>VIP</strong>
+                                        <span class="best-view-tag">Best View</span>
+                                    </div>
+                                    <div class="ticket-price">฿ 6,500</div>
+                                    <div class="ticket-perks">สิทธิพิเศษ: Meet & Greet / Photo / Postcard</div>
+                                </div>
+                                <div class="quantity-control">
+                                    <button onclick="changeTicketQty('VIP', -1)">-</button>
+                                    <span id="qty-VIP">0</span>
+                                    <button onclick="changeTicketQty('VIP', 1)">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Zone A -->
+                            <div class="ticket-type-card">
+                                <div class="ticket-info">
+                                    <div class="ticket-name-row">
+                                        <span class="zone-badge zone-a-bg"></span>
+                                        <strong>โซน A</strong>
+                                    </div>
+                                    <div class="ticket-price">฿ 5,500 <span class="unit-text">(ยืน)</span></div>
+                                </div>
+                                <div class="quantity-control">
+                                    <button onclick="changeTicketQty('Zone A', -1)">-</button>
+                                    <span id="qty-Zone A">0</span>
+                                    <button onclick="changeTicketQty('Zone A', 1)">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Zone B -->
+                            <div class="ticket-type-card">
+                                <div class="ticket-info">
+                                    <div class="ticket-name-row">
+                                        <span class="zone-badge zone-b-bg"></span>
+                                        <strong>โซน B</strong>
+                                    </div>
+                                    <div class="ticket-price">฿ 4,500 <span class="unit-text">(นั่ง)</span></div>
+                                </div>
+                                <div class="quantity-control">
+                                    <button onclick="changeTicketQty('Zone B', -1)">-</button>
+                                    <span id="qty-Zone B">0</span>
+                                    <button onclick="changeTicketQty('Zone B', 1)">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Zone C -->
+                            <div class="ticket-type-card">
+                                <div class="ticket-info">
+                                    <div class="ticket-name-row">
+                                        <span class="zone-badge zone-c-bg"></span>
+                                        <strong>โซน C</strong>
+                                    </div>
+                                    <div class="ticket-price">฿ 3,500 <span class="unit-text">(นั่ง)</span></div>
+                                </div>
+                                <div class="quantity-control">
+                                    <button onclick="changeTicketQty('Zone C', -1)">-</button>
+                                    <span id="qty-Zone C">0</span>
+                                    <button onclick="changeTicketQty('Zone C', 1)">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Zone D -->
+                            <div class="ticket-type-card">
+                                <div class="ticket-info">
+                                    <div class="ticket-name-row">
+                                        <span class="zone-badge zone-d-bg"></span>
+                                        <strong>โซน D</strong>
+                                    </div>
+                                    <div class="ticket-price">฿ 2,500 <span class="unit-text">(นั่ง)</span></div>
+                                </div>
+                                <div class="quantity-control">
+                                    <button onclick="changeTicketQty('Zone D', -1)">-</button>
+                                    <span id="qty-Zone D">0</span>
+                                    <button onclick="changeTicketQty('Zone D', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stack DSA Controls & History Box (ปรับแต่งใหม่ตรงนี้) -->
+                        <div class="dsa-stack-bar">
+                            <div class="stack-header-row">
+                                <span>ประวัติการเลือก (Stack DSA):</span>
+                                <button class="undo-stack-btn" onclick="handleUndoStack()" disabled>
+                                    <i class="fa-solid fa-rotate-left"></i> Undo
+                                </button>
+                            </div>
+                            <div id="stack-history-container" class="stack-badge-container">
+                                <span class="empty-stack-text">ไม่มี</span>
+                            </div>
+                        </div>
+
+                        <!-- Queue Status Box -->
+                        <div class="queue-status-box">
+                            <div class="queue-title">สถานะการจองคิว (Queue DSA)</div>
+                            <button class="join-queue-btn" onclick="joinQueue()">เข้าคิวจองบัตร</button>
+                            <div id="queue-info" class="queue-info-text">ถึงคิวของคุณแล้ว! โปรดกดชำระเงิน</div>
+                        </div>
+
+                        <!-- Total Price & Checkout -->
+                        <div class="checkout-footer-panel">
+                            <div class="total-price-row">
+                                <span>ยอดรวม</span>
+                                <span class="total-amount" id="total-price-display">฿ 0.00</span>
+                            </div>
+
+                            <button class="go-select-seat-btn" id="checkout-btn" disabled onclick="processBooking()">
+                                <i class="fa-solid fa-ticket"></i> ยืนยันการจองบัตร
+                            </button>
+
+                            <p class="fee-note">* ราคานี้ยังไม่รวมค่าธรรมเนียมการจอง 3%</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <h2>Popular Events</h2>
-        <div id="loading" class="loading hidden">กำลังโหลดข้อมูลคอนเสิร์ต...</div>
-        <div id="events-grid" class="events-grid"></div>
     </main>
 
     <!-- Modal: Quick View Pop-up -->
-    <div id="quickview-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeQuickView()">&times;</span>
-            <div id="quickview-body"></div>
+    <div id="quickview-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 620px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-circle-info" style="color: #ff4b82;"></i> รายละเอียดคอนเสิร์ต</h3>
+                <button class="close-modal-btn" onclick="closeQuickView()">&times;</button>
+            </div>
+            <div class="modal-body" id="quickview-body"></div>
         </div>
     </div>
 
-    <!-- MAIN SECTION: BOOKING PAGE -->
-    <main id="booking-page" class="page-section hidden">
-        <button class="back-btn" onclick="showSection('home-page')">← กลับหน้าหลัก</button>
-        <div class="booking-container">
-            <div class="event-details-card" id="booking-event-info"></div>
-            
-            <div class="ticket-selection">
-                <h3>เลือกประเภทบัตร & ระบบคิว (Queue DSA)</h3>
-                <div class="zone-picker">
-                    <button class="zone-btn" onclick="selectZone('VIP', 6500)">VIP - 6,500 THB</button>
-                    <button class="zone-btn" onclick="selectZone('Zone A', 5500)">Zone A - 5,500 THB</button>
-                    <button class="zone-btn" onclick="selectZone('Zone B', 4500)">Zone B - 4,500 THB</button>
-                </div>
-
-                <!-- Stack & Undo Controls -->
-                <div class="stack-controls">
-                    <p>ประวัติการเลือก (Stack DSA): <span id="stack-history">ไม่มี</span></p>
-                    <button class="undo-btn" onclick="handleUndoStack()"> Undo (ย้อนกลับการเลือก)</button>
-                </div>
-
-                <!-- Queue System -->
-                <div class="queue-status-card">
-                    <h4>สถานะการจองคิว (Queue)</h4>
-                    <button class="submit-btn" onclick="joinQueue()">เข้าคิวจองบัตร</button>
-                    <p id="queue-info">ยังไม่ได้เข้าคิว</p>
-                    <button class="submit-btn checkout-btn" id="checkout-btn" disabled onclick="processBooking()">ยืนยันชำระเงิน</button>
+    <!-- Favorites Modal -->
+    <div id="favorites-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-heart" style="color: #ff4b82;"></i> คอนเสิร์ตที่คุณชื่นชอบ</h3>
+                <button class="close-modal-btn" onclick="closeFavoritesModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="favorites-list-grid" class="events-grid-4col"></div>
+                <div id="no-favorites-msg" class="empty-state-msg hidden">
+                    <i class="fa-regular fa-heart" style="font-size: 3rem; color: #555; margin-bottom: 10px;"></i>
+                    <p>ยังไม่มีคอนเสิร์ตที่ถูกใจ</p>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script src="app.js"></script>
 </body>

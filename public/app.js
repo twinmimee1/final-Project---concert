@@ -2,10 +2,10 @@
 // 1. DATA STRUCTURES & ALGORITHMS (DSAs)
 // ==========================================
 
-// --- DSA 1: SORTING ALGORITHM (Selection Sort - เขียนเอง) ---
+// --- Selection Sort ---
 function customSelectionSort(arr, key) {
     let n = arr.length;
-    let list = [...arr]; // Copy array
+    let list = [...arr];
 
     for (let i = 0; i < n - 1; i++) {
         let minIdx = i;
@@ -25,43 +25,36 @@ function customSelectionSort(arr, key) {
     return list;
 }
 
-// --- DSA 2: STACK IMPLEMENTATION (เขียนด้วย Class เอง สำหรับ Undo การเลือกบัตร) ---
-class TicketStack {
+// --- Custom Stack Class ---
+class Stack {
     constructor() {
-        this.items = {};
-        this.top = 0;
+        this.items = [];
     }
     push(element) {
-        this.items[this.top] = element;
-        this.top++;
+        this.items.push(element);
     }
     pop() {
-        if (this.top === 0) return null;
-        this.top--;
-        const result = this.items[this.top];
-        delete this.items[this.top];
-        return result;
+        if (this.isEmpty()) return null;
+        return this.items.pop();
     }
     peek() {
-        if (this.top === 0) return null;
-        return this.items[this.top - 1];
+        return this.items[this.items.length - 1];
     }
     isEmpty() {
-        return this.top === 0;
+        return this.items.length === 0;
+    }
+    clear() {
+        this.items = [];
+    }
+    getElements() {
+        return [...this.items];
     }
 }
 
-// --- DSA 3: QUEUE IMPLEMENTATION (เขียนด้วย Class เอง สำหรับระบบรอคิว) ---
+// --- Queue Structure ---
 class BookingQueue {
-    constructor() {
-        this.items = {};
-        this.head = 0;
-        this.tail = 0;
-    }
-    enqueue(element) {
-        this.items[this.tail] = element;
-        this.tail++;
-    }
+    constructor() { this.items = {}; this.head = 0; this.tail = 0; }
+    enqueue(element) { this.items[this.tail] = element; this.tail++; }
     dequeue() {
         if (this.head === this.tail) return null;
         const item = this.items[this.head];
@@ -69,67 +62,121 @@ class BookingQueue {
         this.head++;
         return item;
     }
-    size() {
-        return this.tail - this.head;
-    }
+    size() { return this.tail - this.head; }
 }
 
-// Global Instances
+// Global Variables
 let globalEvents = [];
-const selectionStack = new TicketStack();
+const selectionStack = new Stack();
 const bookingQueue = new BookingQueue();
-let favoriteEvents = [];
 let currentUser = null;
-let selectedEventForBooking = null;
+
+// Favorite State & Undo/Redo Stacks
+let favoriteEvents = []; 
+const undoStack = new Stack(); 
+const redoStack = new Stack(); 
+
+// โครงสร้างเก็บจำนวนบัตรที่เลือก
+let ticketCart = {
+    'VIP': { price: 6500, qty: 0 },
+    'Zone A': { price: 5500, qty: 0 },
+    'Zone B': { price: 4500, qty: 0 },
+    'Zone C': { price: 3500, qty: 0 },
+    'Zone D': { price: 2500, qty: 0 }
+};
 
 // ==========================================
-// 2. APP LOGIC & API INTEGRATION
+// 2. PAGE NAVIGATION & AUTH LOGIC
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchEvents();
 });
 
+function showSection(sectionId) {
+    document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
+    document.getElementById(sectionId).classList.remove('hidden');
+}
+
+function handleLogin(event) {
+    event.preventDefault();
+    const usernameInput = document.getElementById('username-input').value;
+    if (usernameInput) {
+        currentUser = usernameInput;
+        completeLoginSequence();
+    }
+}
+
+function mockSocialLogin(provider) {
+    currentUser = `${provider}_User`;
+    alert(`คุณได้เข้าสู่ระบบผ่าน ${provider} เรียบร้อยแล้ว!`);
+    completeLoginSequence();
+}
+
+function completeLoginSequence() {
+    const userBtn = document.getElementById('user-btn');
+    if (userBtn) userBtn.innerText = currentUser;
+    showSection('home-page');
+}
+
+// ==========================================
+// 3. API FETCHING & FEED DISPLAY
+// ==========================================
+
 async function fetchEvents(keyword = '') {
     const loading = document.getElementById('loading');
     const grid = document.getElementById('events-grid');
-    loading.classList.remove('hidden');
-    grid.innerHTML = '';
+    if (loading) loading.classList.remove('hidden');
 
     try {
         const response = await fetch(`/api/events?keyword=${keyword}`);
         const data = await response.json();
-        globalEvents = data.events;
+        globalEvents = data.events || [];
         renderEvents(globalEvents);
     } catch (err) {
-        grid.innerHTML = '<p>เกิดข้อผิดพลาดในการโหลดข้อมูล API</p>';
+        if (grid) grid.innerHTML = '<p style="grid-column: span 4; text-align:center;">เกิดข้อผิดพลาดในการดึงข้อมูล API</p>';
     } finally {
-        loading.classList.add('hidden');
+        if (loading) loading.classList.add('hidden');
     }
 }
 
 function renderEvents(events) {
     const grid = document.getElementById('events-grid');
+    if (!grid) return;
     grid.innerHTML = '';
 
     if (events.length === 0) {
-        grid.innerHTML = '<p>ไม่พบรายการคอนเสิร์ต</p>';
+        grid.innerHTML = '<p style="grid-column: span 4; text-align:center;">ไม่พบรายการคอนเสิร์ต</p>';
         return;
     }
 
     events.forEach(event => {
+        const dateObj = new Date(event.date);
+        const day = isNaN(dateObj.getDate()) ? '15' : dateObj.getDate();
+        const monthYear = isNaN(dateObj.getDate()) ? 'NOV 2025' : dateObj.toLocaleString('en', { month: 'short', year: 'numeric' });
+
+        const isFav = favoriteEvents.some(fav => fav.id === event.id);
+        const heartClass = isFav ? 'fa-solid fa-heart active' : 'fa-regular fa-heart';
+        const heartColor = isFav ? 'color: var(--accent-pink);' : '';
+
         const card = document.createElement('div');
-        card.className = 'event-card';
+        card.className = 'concert-card-modern';
         card.innerHTML = `
-            <img src="${event.imageUrl}" alt="${event.name}">
-            <div class="event-card-content">
-                <h4>${event.name}</h4>
-                <p><i class="fa-regular fa-calendar"></i> ${event.date}</p>
-                <p><i class="fa-solid fa-location-dot"></i> ${event.venue}</p>
-                <div class="card-actions">
-                    <button class="book-btn" onclick="directBooking('${event.id}')">จองบัตร</button>
-                    <button class="genre-btn" onclick="openQuickView('${event.id}')">ดูย่อ</button>
-                    <i class="fa-regular fa-heart" style="cursor:pointer; color: var(--accent-pink)" onclick="toggleFavorite('${event.id}')"></i>
+            <div class="card-img-wrapper" onclick="openQuickView('${event.id}')" style="cursor:pointer">
+                <img src="${event.imageUrl}" alt="${event.name}">
+                <div class="date-badge">
+                    <div class="day">${day}</div>
+                    <div class="month-year">${monthYear}</div>
+                </div>
+            </div>
+            <div class="concert-card-body">
+                <div>
+                    <h4 class="concert-title" title="${event.name}">${event.name}</h4>
+                    <div class="concert-venue">${event.venue}, ${event.city}</div>
+                </div>
+                <div class="concert-card-footer">
+                    <button class="btn-book-small" onclick="directBooking('${event.id}')">จองบัตร</button>
+                    <i class="${heartClass} fav-btn-icon" style="${heartColor}" onclick="toggleFavorite('${event.id}')"></i>
                 </div>
             </div>
         `;
@@ -137,13 +184,11 @@ function renderEvents(events) {
     });
 }
 
-// --- Sorting Trigger ---
 function handleSort(key) {
     const sorted = customSelectionSort(globalEvents, key);
     renderEvents(sorted);
 }
 
-// --- Filter Search ---
 function searchEvents() {
     const query = document.getElementById('search-input').value;
     fetchEvents(query);
@@ -154,125 +199,352 @@ function filterGenre(genre) {
     else fetchEvents(genre);
 }
 
-// --- Auth Mockup ---
-function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); }
-function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
+// ==========================================
+// 4. FAVORITES & UNDO/REDO SYSTEM (STACK DSA)
+// ==========================================
 
-function handleLogin() {
-    const name = document.getElementById('username-input').value;
-    if (name) {
-        currentUser = name;
-        document.getElementById('user-btn').innerText = currentUser;
-        closeLoginModal();
-        alert(`เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับ ${currentUser}`);
-    }
-}
-
-function mockSocialLogin(provider) {
-    alert(`เข้าสู่ระบบผ่าน ${provider} สำเร็จ!`);
-    currentUser = `${provider}_User`;
-    document.getElementById('user-btn').innerText = currentUser;
-    closeLoginModal();
-}
-
-// --- Favorites Feature ---
 function toggleFavorite(eventId) {
     const event = globalEvents.find(e => e.id === eventId);
     if (!event) return;
 
-    if (!favoriteEvents.includes(event.name)) {
-        favoriteEvents.push(event.name);
+    const isFav = favoriteEvents.some(e => e.id === eventId);
+    let actionType = '';
+
+    if (isFav) {
+        favoriteEvents = favoriteEvents.filter(e => e.id !== eventId);
+        actionType = 'REMOVE';
+    } else {
+        favoriteEvents.push(event);
+        actionType = 'ADD';
     }
-    document.getElementById('fav-count').innerText = favoriteEvents.length;
-    renderFavoritesList();
+
+    undoStack.push({ type: actionType, event: event });
+    redoStack.clear();
+
+    updateFavoritesUI();
 }
 
-function renderFavoritesList() {
-    const list = document.getElementById('fav-list');
-    list.innerHTML = favoriteEvents.map(item => `<li>${item}</li>`).join('');
+function undoFavorite() {
+    if (undoStack.isEmpty()) return;
+
+    const lastAction = undoStack.pop();
+    
+    if (lastAction.type === 'ADD') {
+        favoriteEvents = favoriteEvents.filter(e => e.id !== lastAction.event.id);
+    } else if (lastAction.type === 'REMOVE') {
+        favoriteEvents.push(lastAction.event);
+    }
+
+    redoStack.push(lastAction);
+    updateFavoritesUI();
 }
 
-function toggleFavoritesMenu() {
-    document.getElementById('favorites-popup').classList.toggle('hidden');
+function redoFavorite() {
+    if (redoStack.isEmpty()) return;
+
+    const nextAction = redoStack.pop();
+
+    if (nextAction.type === 'ADD') {
+        favoriteEvents.push(nextAction.event);
+    } else if (nextAction.type === 'REMOVE') {
+        favoriteEvents.push(nextAction.event);
+    }
+
+    undoStack.push(nextAction);
+    updateFavoritesUI();
 }
 
-// --- Quick View Modal ---
+function updateFavoritesUI() {
+    const favCountElem = document.getElementById('fav-count');
+    if (favCountElem) favCountElem.innerText = favoriteEvents.length;
+
+    const undoBtn = document.getElementById('undo-btn');
+    const redoBtn = document.getElementById('redo-btn');
+    if (undoBtn) undoBtn.disabled = undoStack.isEmpty();
+    if (redoBtn) redoBtn.disabled = redoStack.isEmpty();
+
+    renderEvents(globalEvents);
+    renderFavoritesModalContent();
+}
+
+function openFavoritesModal() {
+    renderFavoritesModalContent();
+    const modal = document.getElementById('favorites-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeFavoritesModal() {
+    const modal = document.getElementById('favorites-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function renderFavoritesModalContent() {
+    const grid = document.getElementById('favorites-list-grid');
+    const emptyMsg = document.getElementById('no-favorites-msg');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    if (favoriteEvents.length === 0) {
+        if (emptyMsg) emptyMsg.classList.remove('hidden');
+    } else {
+        if (emptyMsg) emptyMsg.classList.add('hidden');
+        
+        favoriteEvents.forEach(event => {
+            const dateObj = new Date(event.date);
+            const day = isNaN(dateObj.getDate()) ? '15' : dateObj.getDate();
+            const monthYear = isNaN(dateObj.getDate()) ? 'NOV 2025' : dateObj.toLocaleString('en', { month: 'short', year: 'numeric' });
+
+            const card = document.createElement('div');
+            card.className = 'concert-card-modern';
+            card.innerHTML = `
+                <div class="card-img-wrapper" onclick="closeFavoritesModal(); openQuickView('${event.id}')" style="cursor:pointer">
+                    <img src="${event.imageUrl}" alt="${event.name}">
+                    <div class="date-badge">
+                        <div class="day">${day}</div>
+                        <div class="month-year">${monthYear}</div>
+                    </div>
+                </div>
+                <div class="concert-card-body">
+                    <div>
+                        <h4 class="concert-title">${event.name}</h4>
+                        <div class="concert-venue">${event.venue}, ${event.city}</div>
+                    </div>
+                    <div class="concert-card-footer">
+                        <button class="btn-book-small" onclick="closeFavoritesModal(); directBooking('${event.id}')">จองบัตร</button>
+                        <i class="fa-solid fa-heart active fav-btn-icon" style="color: var(--accent-pink);" onclick="toggleFavorite('${event.id}')"></i>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+}
+
+// ==========================================
+// 5. QUICK VIEW & BOOKING QUEUE LOGIC
+// ==========================================
+
 function openQuickView(eventId) {
     const event = globalEvents.find(e => e.id === eventId);
     if (!event) return;
 
     const modalBody = document.getElementById('quickview-body');
+    if (!modalBody) return;
+
     modalBody.innerHTML = `
-        <h3>${event.name}</h3>
-        <p><strong>ศิลปิน:</strong> ${event.artists}</p>
-        <p><strong>วัน/เวลา:</strong> ${event.date} | ${event.time}</p>
-        <p><strong>สถานที่:</strong> ${event.venue}, ${event.city}</p>
-        <button class="submit-btn" onclick="closeQuickView(); directBooking('${event.id}')">จองบัตรเลย</button>
+        <div class="qv-container">
+            <img src="${event.imageUrl}" alt="${event.name}" class="qv-image">
+            <div class="qv-details">
+                <span class="qv-badge">${event.genre || 'Concert'}</span>
+                <h2>${event.name}</h2>
+                <p><i class="fa-solid fa-user-astronaut"></i> <strong>ศิลปิน:</strong> ${event.artists || event.name}</p>
+                <p><i class="fa-regular fa-calendar-days"></i> <strong>วันแสดง:</strong> ${event.date} (${event.time || '19:00 น.'})</p>
+                <p><i class="fa-solid fa-location-dot"></i> <strong>สถานที่:</strong> ${event.venue}, ${event.city}</p>
+                <p><i class="fa-solid fa-tag"></i> <strong>ราคาบัตรเริ่มต้น:</strong> ${event.minPrice ? event.minPrice.toLocaleString() : '1,500'} THB</p>
+                <div class="qv-actions">
+                    <button class="btn-book-small" style="width: 100%; padding: 12px; font-size: 0.95rem; border-radius: 20px;" onclick="closeQuickView(); directBooking('${event.id}')">
+                        จองบัตรคอนเสิร์ตนี้เลย
+                    </button>
+                </div>
+            </div>
+        </div>
     `;
-    document.getElementById('quickview-modal').classList.remove('hidden');
+
+    const modal = document.getElementById('quickview-modal');
+    if (modal) modal.classList.remove('hidden');
 }
 
-function closeQuickView() { document.getElementById('quickview-modal').classList.add('hidden'); }
-
-// --- Booking & Navigation Flow ---
-function showSection(sectionId) {
-    document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById(sectionId).classList.remove('hidden');
+function closeQuickView() {
+    const modal = document.getElementById('quickview-modal');
+    if (modal) modal.classList.add('hidden');
 }
 
+// === อัปเดตข้อมูล Dynamic ไปยังหน้า Booking ===
 function directBooking(eventId) {
-    selectedEventForBooking = globalEvents.find(e => e.id === eventId);
-    if (!selectedEventForBooking) return;
+    const event = globalEvents.find(e => e.id === eventId);
+    if (!event) return;
 
-    const infoContainer = document.getElementById('booking-event-info');
-    infoContainer.innerHTML = `
-        <h2>${selectedEventForBooking.name}</h2>
-        <img src="${selectedEventForBooking.imageUrl}" style="width:100%; max-height:250px; object-fit:cover; border-radius:8px;">
-        <p><strong>ศิลปิน:</strong> ${selectedEventForBooking.artists}</p>
-        <p><strong>สถานที่:</strong> ${selectedEventForBooking.venue} (${selectedEventForBooking.city}, ${selectedEventForBooking.country})</p>
-        <p><strong>วัน-เวลา:</strong> ${selectedEventForBooking.date} @ ${selectedEventForBooking.time}</p>
-        <p><a href="${selectedEventForBooking.ticketmasterUrl}" target="_blank" style="color: var(--accent-pink)">ดูรายละเอียดบน Ticketmaster</a></p>
-    `;
+    // 1. อัปเดต Hero Banner Background & Title
+    const heroElem = document.getElementById('booking-event-hero');
+    if (heroElem && event.imageUrl) {
+        heroElem.style.background = `linear-gradient(180deg, rgba(15, 10, 25, 0.3) 0%, rgba(10, 9, 17, 0.95) 100%), url('${event.imageUrl}') center/cover`;
+    }
+
+    // 2. อัปเดตข้อความรายละเอียดงาน
+    const heroTitle = document.getElementById('booking-event-title');
+    const subtitle = document.getElementById('booking-event-subtitle');
+    const dateElem = document.getElementById('booking-event-date');
+    const timeElem = document.getElementById('booking-event-time');
+    const venueElem = document.getElementById('booking-event-venue');
+    const genreElem = document.getElementById('booking-event-genre');
+    const artistElem = document.getElementById('booking-artist-name');
+    const descElem = document.querySelector('.event-desc-text');
+
+    if (heroTitle) heroTitle.innerText = event.name;
+    if (subtitle) subtitle.innerText = event.name;
+    if (dateElem) dateElem.innerText = event.date;
+    if (timeElem) timeElem.innerText = `เวลา ${event.time || '19:00 น.'}`;
+    if (venueElem) venueElem.innerText = `${event.venue}, ${event.city}`;
+    if (genreElem) genreElem.innerText = event.genre || 'Concert';
+    if (artistElem) artistElem.innerHTML = `${event.artists || event.name} <span class="headliner-badge">Headliner</span>`;
+
+    // อัปเดตคำบรรยายงาน
+    if (descElem) {
+        descElem.innerText = event.description || `เตรียมพบกับคอนเสิร์ตเต็มรูปแบบของ ${event.name} ที่จะมาพร้อมโชว์สุดพิเศษ และเพลงฮิตมากมาย ให้คุณได้ดื่มด่ำไปกับบรรยากาศและพลังแห่งดนตรีไปด้วยกัน`;
+    }
+
+    // 3. คำนวณและอัปเดตราคาบัตรตามฐานราคา minPrice ของงานนั้นๆ
+    const basePrice = event.minPrice || 2500;
+    ticketCart = {
+        'VIP': { price: basePrice + 4000, qty: 0 },
+        'Zone A': { price: basePrice + 3000, qty: 0 },
+        'Zone B': { price: basePrice + 2000, qty: 0 },
+        'Zone C': { price: basePrice + 1000, qty: 0 },
+        'Zone D': { price: basePrice, qty: 0 }
+    };
+
+    // แสดงราคาบัตรบน UI หน้าจอง
+    updateTicketPricesUI();
+
+    // รีเซ็ตคิวและตระกร้าสินค้า
+    resetTicketCart();
     showSection('booking-page');
 }
 
-// --- Stack & Queue Handling ---
-function selectZone(zoneName, price) {
-    selectionStack.push({ zoneName, price });
+// อัปเดตข้อความราคาบน UI ฝั่งขวา
+function updateTicketPricesUI() {
+    for (let zone in ticketCart) {
+        const card = document.getElementById(`qty-${zone}`)?.closest('.ticket-type-card');
+        if (card) {
+            const priceElem = card.querySelector('.ticket-price');
+            if (priceElem) {
+                const unitText = priceElem.querySelector('.unit-text')?.outerHTML || '';
+                priceElem.innerHTML = `฿ ${ticketCart[zone].price.toLocaleString()} ${unitText}`;
+            }
+        }
+    }
+}
+
+function changeTicketQty(zoneName, delta) {
+    if (!ticketCart[zoneName]) return;
+
+    if (delta > 0) {
+        // เพิ่มลง Stack
+        ticketCart[zoneName].qty++;
+        selectionStack.push({ zoneName, price: ticketCart[zoneName].price });
+    } else {
+        // หากเป็นการกดปุ่มลบ (-) โดยตรงที่โซนนั้นๆ
+        if (ticketCart[zoneName].qty > 0) {
+            ticketCart[zoneName].qty--;
+            
+            // ลบรายการโซนนั้นๆ ตัวล่าสุดออกจาก Stack
+            const elements = selectionStack.getElements();
+            for (let i = elements.length - 1; i >= 0; i--) {
+                if (elements[i].zoneName === zoneName) {
+                    elements.splice(i, 1);
+                    break;
+                }
+            }
+            selectionStack.items = elements;
+        }
+    }
+
+    const qtyElem = document.getElementById(`qty-${zoneName}`);
+    if (qtyElem) qtyElem.innerText = ticketCart[zoneName].qty;
+
     updateStackUI();
+    calculateTotal();
+}
+
+function resetTicketCart() {
+    selectionStack.clear();
+    for (let key in ticketCart) {
+        ticketCart[key].qty = 0;
+        const elem = document.getElementById(`qty-${key}`);
+        if (elem) elem.innerText = '0';
+    }
+    updateStackUI();
+    calculateTotal();
 }
 
 function handleUndoStack() {
-    const removed = selectionStack.pop();
-    if (removed) {
-        alert(`ยกเลิกการเลือกโซน: ${removed.zoneName}`);
+    const lastSelection = selectionStack.pop();
+    if (lastSelection) {
+        const zone = lastSelection.zoneName;
+        if (ticketCart[zone] && ticketCart[zone].qty > 0) {
+            ticketCart[zone].qty--;
+            const qtyElem = document.getElementById(`qty-${zone}`);
+            if (qtyElem) qtyElem.innerText = ticketCart[zone].qty;
+        }
     }
     updateStackUI();
+    calculateTotal();
 }
 
+// === จุดแก้ไขสำคัญ: แสดงผล Stack เป็นกล่องแบบต่อท้ายเรียงกัน ===
 function updateStackUI() {
-    const current = selectionStack.peek();
-    document.getElementById('stack-history').innerText = current ? `${current.zoneName} (${current.price} THB)` : 'ไม่มี';
+    const stackContainer = document.getElementById('stack-history-container');
+    const undoBtn = document.querySelector('.undo-stack-btn');
+    if (!stackContainer) return;
+
+    stackContainer.innerHTML = '';
+    const items = selectionStack.getElements();
+
+    if (items.length === 0) {
+        stackContainer.innerHTML = '<span class="empty-stack-text">ไม่มี</span>';
+        if (undoBtn) undoBtn.disabled = true;
+    } else {
+        if (undoBtn) undoBtn.disabled = false;
+        
+        items.forEach(item => {
+            const badge = document.createElement('div');
+            badge.className = 'stack-badge-item';
+            
+            // กำหนดสีของ Badge ตามโซน
+            let zoneClass = '';
+            if (item.zoneName === 'VIP') zoneClass = 'vip';
+            else if (item.zoneName === 'Zone A') zoneClass = 'zone-a';
+            else if (item.zoneName === 'Zone B') zoneClass = 'zone-b';
+            else if (item.zoneName === 'Zone C') zoneClass = 'zone-c';
+            else if (item.zoneName === 'Zone D') zoneClass = 'zone-d';
+
+            badge.innerHTML = `
+                <span class="badge-dot ${zoneClass}"></span>
+                <span class="badge-text">${item.zoneName} (฿${item.price.toLocaleString()})</span>
+            `;
+            stackContainer.appendChild(badge);
+        });
+    }
+}
+
+function calculateTotal() {
+    let total = 0;
+    for (let key in ticketCart) {
+        total += ticketCart[key].price * ticketCart[key].qty;
+    }
+
+    const totalDisplay = document.getElementById('total-price-display');
+    if (totalDisplay) {
+        totalDisplay.innerText = `฿ ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
 }
 
 function joinQueue() {
-    if (!currentUser) {
-        alert('กรุณาเข้าสู่ระบบก่อนทำการจอง');
-        openLoginModal();
-        return;
+    if (!currentUser) { 
+        alert('กรุณาเข้าสู่ระบบก่อนครับ'); 
+        showSection('welcome-page'); 
+        return; 
     }
     bookingQueue.enqueue(currentUser);
     document.getElementById('queue-info').innerText = `คุณอยู่ในคิวอันดับที่ ${bookingQueue.size()}`;
-    
-    // จำลองการรัน Queue
     setTimeout(() => {
-        const processedUser = bookingQueue.dequeue();
-        document.getElementById('queue-info').innerText = `ถึงคิวของ ${processedUser} แล้ว! โปรดกดชำระเงิน`;
+        document.getElementById('queue-info').innerText = `ถึงคิวของคุณแล้ว! โปรดกดชำระเงิน`;
         document.getElementById('checkout-btn').disabled = false;
     }, 2000);
 }
 
 function processBooking() {
-    alert('จองบัตรคอนเสิร์ตสำเร็จ! ขอให้สนุกกับคอนเสิร์ตครับ');
+    alert('จองบัตรคอนเสิร์ตสำเร็จ!');
     showSection('home-page');
 }
