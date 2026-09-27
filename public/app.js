@@ -53,8 +53,15 @@ class Stack {
 
 // --- Queue Structure ---
 class BookingQueue {
-    constructor() { this.items = {}; this.head = 0; this.tail = 0; }
-    enqueue(element) { this.items[this.tail] = element; this.tail++; }
+    constructor() { 
+        this.items = {}; 
+        this.head = 0; 
+        this.tail = 0; 
+    }
+    enqueue(element) { 
+        this.items[this.tail] = element; 
+        this.tail++; 
+    }
     dequeue() {
         if (this.head === this.tail) return null;
         const item = this.items[this.head];
@@ -62,7 +69,14 @@ class BookingQueue {
         this.head++;
         return item;
     }
-    size() { return this.tail - this.head; }
+    size() { 
+        return this.tail - this.head; 
+    }
+    clear() {
+        this.items = {};
+        this.head = 0;
+        this.tail = 0;
+    }
 }
 
 // Global Variables
@@ -86,16 +100,19 @@ let ticketCart = {
 };
 
 // ==========================================
-// 2. PAGE NAVIGATION & AUTH LOGIC
+// 2. PAGE NAVIGATION, EVENT LISTENERS & AUTH
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchEvents();
+    setupTabNavigation();
+    setupPasswordToggle();
 });
 
 function showSection(sectionId) {
     document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
-    document.getElementById(sectionId).classList.remove('hidden');
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) targetSection.classList.remove('hidden');
 }
 
 function handleLogin(event) {
@@ -117,6 +134,49 @@ function completeLoginSequence() {
     const userBtn = document.getElementById('user-btn');
     if (userBtn) userBtn.innerText = currentUser;
     showSection('home-page');
+}
+
+// สลับการมองเห็นรหัสผ่าน (Password Visibility Toggle)
+function setupPasswordToggle() {
+    const togglePwdBtn = document.querySelector('.toggle-pwd');
+    if (togglePwdBtn) {
+        togglePwdBtn.addEventListener('click', function() {
+            const pwdInput = this.parentElement.querySelector('input[type="password"], input[type="text"]');
+            if (pwdInput) {
+                if (pwdInput.type === 'password') {
+                    pwdInput.type = 'text';
+                    this.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    pwdInput.type = 'password';
+                    this.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            }
+        });
+    }
+}
+
+// ระบบจัดการ Tab Navigation บนหน้า Booking
+function setupTabNavigation() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContentText = document.querySelector('.tab-content-text');
+
+    const tabContents = {
+        0: `<p>The 1975 กลับมาอีกครั้งกับทัวร์คอนเสิร์ตระดับโลก "Live in Bangkok" พร้อมโชว์ใหม่ล่าสุดจากอัลบั้ม และเพลงฮิตที่ทุกคนคิดถึง ห้ามพลาด! โอกาสสุดท้ายที่จะได้สัมผัสพวกเขาแบบใกล้ชิดในประเทศไทย</p>
+            <div class="quote-style">"It's not just a concert, it's a feeling." ♡</div>`,
+        1: `<p>ศิลปินหลัก: <strong>The 1975</strong> วงอินดี้ร็อกระดับโลก พร้อมไลน์อัปสุดพิเศษที่จะมาร่วมสร้างความประทับใจตลอดทั้งค่ำคืน</p>`,
+        2: `<p>สามารถตรวจสอบตำแหน่งที่นั่งและโซนต่าง ๆ ได้ที่แผนผัง SVG ด้านล่างนี้ โดยแบ่งตามระดับราคาและสิทธิประโยชน์</p>`,
+        3: `<p>1. ห้ามนำกล้องถ่ายภาพมืออาชีพเข้าภายในงาน<br>2. แสดงหลักฐานการฉีดวัคซีนหรือผลตรวจ ATK ตามที่ผู้จัดกำหนด<br>3. ไม่อนุญาตให้เปลี่ยนหรือคืนบัตรในทุกกรณี</p>`
+    };
+
+    tabBtns.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (tabContentText && tabContents[index]) {
+                tabContentText.innerHTML = tabContents[index];
+            }
+        });
+    });
 }
 
 // ==========================================
@@ -195,6 +255,12 @@ function searchEvents() {
 }
 
 function filterGenre(genre) {
+    // ปรับ Active State บน Genre Pills UI
+    document.querySelectorAll('.genre-pill').forEach(pill => pill.classList.remove('active'));
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
+
     if (genre === 'all') fetchEvents('music');
     else fetchEvents(genre);
 }
@@ -247,7 +313,7 @@ function redoFavorite() {
     if (nextAction.type === 'ADD') {
         favoriteEvents.push(nextAction.event);
     } else if (nextAction.type === 'REMOVE') {
-        favoriteEvents.push(nextAction.event);
+        favoriteEvents = favoriteEvents.filter(e => e.id !== nextAction.event.id);
     }
 
     undoStack.push(nextAction);
@@ -459,6 +525,13 @@ function changeTicketQty(zoneName, delta) {
 
 function resetTicketCart() {
     selectionStack.clear();
+    bookingQueue.clear();
+    
+    const checkoutBtn = document.getElementById('checkout-btn');
+    const queueInfo = document.getElementById('queue-info');
+    if (checkoutBtn) checkoutBtn.disabled = true;
+    if (queueInfo) queueInfo.innerText = '';
+
     for (let key in ticketCart) {
         ticketCart[key].qty = 0;
         const elem = document.getElementById(`qty-${key}`);
@@ -482,7 +555,7 @@ function handleUndoStack() {
     calculateTotal();
 }
 
-// === จุดแก้ไขสำคัญ: แสดงผล Stack เป็นกล่องแบบต่อท้ายเรียงกัน ===
+// === แสดงผล Stack เป็นกล่องแบบต่อท้ายเรียงกัน ===
 function updateStackUI() {
     const stackContainer = document.getElementById('stack-history-container');
     const undoBtn = document.querySelector('.undo-stack-btn');
@@ -536,15 +609,33 @@ function joinQueue() {
         showSection('welcome-page'); 
         return; 
     }
+
+    let hasTickets = false;
+    for (let key in ticketCart) {
+        if (ticketCart[key].qty > 0) {
+            hasTickets = true;
+            break;
+        }
+    }
+
+    if (!hasTickets) {
+        alert('กรุณาเลือกบัตรอย่างน้อย 1 ใบก่อนเข้าคิว');
+        return;
+    }
+
     bookingQueue.enqueue(currentUser);
-    document.getElementById('queue-info').innerText = `คุณอยู่ในคิวอันดับที่ ${bookingQueue.size()}`;
+    const queueInfo = document.getElementById('queue-info');
+    if (queueInfo) queueInfo.innerText = `คุณอยู่ในคิวอันดับที่ ${bookingQueue.size()}`;
+
     setTimeout(() => {
-        document.getElementById('queue-info').innerText = `ถึงคิวของคุณแล้ว! โปรดกดชำระเงิน`;
-        document.getElementById('checkout-btn').disabled = false;
+        if (queueInfo) queueInfo.innerText = `ถึงคิวของคุณแล้ว! โปรดกดชำระเงิน`;
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) checkoutBtn.disabled = false;
     }, 2000);
 }
 
 function processBooking() {
     alert('จองบัตรคอนเสิร์ตสำเร็จ!');
+    resetTicketCart();
     showSection('home-page');
 }
