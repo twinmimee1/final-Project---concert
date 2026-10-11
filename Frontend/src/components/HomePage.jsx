@@ -268,7 +268,7 @@ export default function HomePage({
         </div>
       )}
 
-      {/* Favorites Modal */}
+      {/* Favorites Modal (พร้อมปุ่มลบออกจากถูกใจ) */}
       {showFavModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -292,9 +292,27 @@ export default function HomePage({
                       <div className="concert-card-body">
                         <h4 className="concert-title">{evt.name}</h4>
                         <div className="concert-venue">{evt.venue}, {evt.city}</div>
-                        <div className="concert-card-footer">
+                        <div className="concert-card-footer" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <button className="btn-book-small" onClick={() => { setShowFavModal(false); onSelectEvent(evt); }}>จองบัตร</button>
-                          <i className="fa-solid fa-heart active fav-btn-icon" style={{ color: '#ff4b82' }} onClick={() => onToggleFavorite(evt)}></i>
+                          <button 
+                            className="btn-remove-fav" 
+                            onClick={() => onToggleFavorite(evt)}
+                            title="ลบออกจากรายการโปรด"
+                            style={{
+                              background: 'rgba(255, 75, 130, 0.15)',
+                              color: '#ff4b82',
+                              border: '1px solid #ff4b82',
+                              padding: '5px 10px',
+                              borderRadius: '15px',
+                              fontSize: '0.75rem',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <i className="fa-solid fa-trash-can"></i> ลบออก
+                          </button>
                         </div>
                       </div>
                     </div>
