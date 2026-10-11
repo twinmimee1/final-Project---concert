@@ -12,15 +12,37 @@ export default function App() {
   const [favoriteEvents, setFavoriteEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ดึงข้อมูลคอนเสิร์ตจาก Express Backend
+  // ดึงข้อมูลคอนเสิร์ตจาก Express Backend (พร้อมระบบสำรอง Fallback)
   const fetchEvents = async (keyword = '') => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/events?keyword=${keyword}`);
+      const endpoint = keyword 
+        ? `http://localhost:3000/api/events?keyword=${keyword}`
+        : 'http://localhost:3000/api/events';
+        
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error('Network response was not ok');
+      
       const data = await response.json();
-      setGlobalEvents(data.events || []);
+      const eventsData = data.events || data;
+
+      if (eventsData && eventsData.length > 0) {
+        setGlobalEvents(eventsData);
+      } else {
+        setGlobalEvents(FALLBACK_EVENTS);
+      }
     } catch (err) {
-      console.error('API Error:', err);
+      console.warn('API connection failed, using fallback mock data for Vercel/Production:', err);
+      // หากรันบน Vercel แล้วต่อ Localhost ไม่ได้ นำข้อมูลสำรองมาแสดงทันที
+      if (keyword) {
+        const filtered = FALLBACK_EVENTS.filter(e => 
+          e.name.toLowerCase().includes(keyword.toLowerCase()) || 
+          e.genre.toLowerCase().includes(keyword.toLowerCase())
+        );
+        setGlobalEvents(filtered.length > 0 ? filtered : FALLBACK_EVENTS);
+      } else {
+        setGlobalEvents(FALLBACK_EVENTS);
+      }
     } finally {
       setLoading(false);
     }
