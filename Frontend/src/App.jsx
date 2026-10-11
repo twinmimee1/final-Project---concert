@@ -1,159 +1,122 @@
-import React, { useState, useEffect } from 'react';
-import './index.css';
-import WelcomePage from './components/WelcomePage';
-import HomePage from './components/HomePage';
-import BookingPage from './components/BookingPage';
+import { useState } from 'react'
+import heroImg from './assets/hero.png'
+import reactLogo from './assets/react.svg'
+import viteLogo from './assets/vite.svg'
+import './App.css'
 
-// ข้อมูลคอนเสิร์ตสำรอง (Fallback Mock Data)
-const FALLBACK_EVENTS = [
-  {
-    id: 'ev-1',
-    name: "Oasis Live '27",
-    venue: 'Allegiant Stadium',
-    city: 'Las Vegas',
-    date: '2027-08-20',
-    time: '19:00 น.',
-    genre: 'Rock',
-    minPrice: 3500,
-    artists: 'Oasis',
-    imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800'
-  },
-  {
-    id: 'ev-2',
-    name: 'The 1975 World Tour',
-    venue: 'Impact Arena',
-    city: 'Bangkok',
-    date: '2026-11-15',
-    time: '20:00 น.',
-    genre: 'Pop',
-    minPrice: 2500,
-    artists: 'The 1975',
-    imageUrl: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=800'
-  },
-  {
-    id: 'ev-3',
-    name: 'Fujii Kaze Asia Tour',
-    venue: 'IMAX Hall',
-    city: 'Bangkok',
-    date: '2026-12-10',
-    time: '18:30 น.',
-    genre: 'Indie',
-    minPrice: 2800,
-    artists: 'Fujii Kaze',
-    imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800'
-  },
-  {
-    id: 'ev-4',
-    name: 'Laufey: A Matter of Time',
-    venue: 'Union Hall',
-    city: 'Bangkok',
-    date: '2026-05-31',
-    time: '19:00 น.',
-    genre: 'Jazz',
-    minPrice: 2200,
-    artists: 'Laufey',
-    imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800'
-  }
-];
-
-export default function App() {
-  const [currentPage, setCurrentPage] = useState('welcome-page');
-  const [currentUser, setCurrentUser] = useState(null);
-  const [globalEvents, setGlobalEvents] = useState(FALLBACK_EVENTS); // ตั้งค่าเริ่มต้นเป็น Mock Data ทันที
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [favoriteEvents, setFavoriteEvents] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  // ดึงข้อมูลคอนเสิร์ต
-  const fetchEvents = async (keyword = '') => {
-    setLoading(true);
-    
-    // ตรวจสอบว่าอยู่บน Localhost หรือไม่
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    if (isLocalhost) {
-      try {
-        const endpoint = keyword 
-          ? `http://localhost:3000/api/events?keyword=${keyword}`
-          : 'http://localhost:3000/api/events';
-          
-        const response = await fetch(endpoint);
-        if (response.ok) {
-          const data = await response.json();
-          const eventsData = data.events || data;
-          if (eventsData && eventsData.length > 0) {
-            setGlobalEvents(eventsData);
-            setLoading(false);
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn('Backend connection failed, using fallback data:', err);
-      }
-    }
-
-    // กรณีรันบน Vercel หรือเรียก API ไม่สำเร็จ ให้กรองจาก Fallback Data
-    if (keyword && keyword !== 'music') {
-      const lowerKey = keyword.toLowerCase();
-      const filtered = FALLBACK_EVENTS.filter(e => 
-        e.name.toLowerCase().includes(lowerKey) || 
-        e.genre.toLowerCase().includes(lowerKey) ||
-        e.artists.toLowerCase().includes(lowerKey) ||
-        e.venue.toLowerCase().includes(lowerKey)
-      );
-      setGlobalEvents(filtered);
-    } else {
-      setGlobalEvents(FALLBACK_EVENTS);
-    }
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+function App() {
+  const [count, setCount] = useState(0)
 
   return (
-    <div className="app-container">
-      {currentPage === 'welcome-page' && (
-        <WelcomePage 
-          onLoginSuccess={(username) => {
-            setCurrentUser(username);
-            setCurrentPage('home-page');
-          }} 
-        />
-      )}
+    <>
+      <section id="center">
+        <div className="hero">
+          <img src={heroImg} className="base" width="170" height="179" alt="" />
+          <img src={reactLogo} className="framework" alt="React logo" />
+          <img src={viteLogo} className="vite" alt="Vite logo" />
+        </div>
+        <div>
+          <h1>Get started</h1>
+          <p>
+            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+          </p>
+        </div>
+        <button
+          type="button"
+          className="counter"
+          onClick={() => setCount((count) => count + 1)}
+        >
+          Count is {count}
+        </button>
+      </section>
 
-      {currentPage === 'home-page' && (
-        <HomePage 
-          currentUser={currentUser}
-          events={globalEvents}
-          loading={loading}
-          favoriteEvents={favoriteEvents}
-          onSearch={fetchEvents}
-          onSelectEvent={(event) => {
-            setSelectedEvent(event);
-            setCurrentPage('booking-page');
-          }}
-          onToggleFavorite={(event) => {
-            if (favoriteEvents.some(f => f.id === event.id)) {
-              setFavoriteEvents(favoriteEvents.filter(f => f.id !== event.id));
-            } else {
-              setFavoriteEvents([...favoriteEvents, event]);
-            }
-          }}
-          onNavigate={(page) => setCurrentPage(page)}
-        />
-      )}
+      <div className="ticks"></div>
 
-      {currentPage === 'booking-page' && (
-        <BookingPage 
-          event={selectedEvent}
-          currentUser={currentUser}
-          onBack={() => setCurrentPage('home-page')}
-          onRequireLogin={() => setCurrentPage('welcome-page')}
-        />
-      )}
-    </div>
-  );
+      <section id="next-steps">
+        <div id="docs">
+          <svg className="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#documentation-icon"></use>
+          </svg>
+          <h2>Documentation</h2>
+          <p>Your questions, answered</p>
+          <ul>
+            <li>
+              <a href="https://vite.dev/" target="_blank">
+                <img className="logo" src={viteLogo} alt="" />
+                Explore Vite
+              </a>
+            </li>
+            <li>
+              <a href="https://react.dev/" target="_blank">
+                <img className="button-icon" src={reactLogo} alt="" />
+                Learn more
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div id="social">
+          <svg className="icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#social-icon"></use>
+          </svg>
+          <h2>Connect with us</h2>
+          <p>Join the Vite community</p>
+          <ul>
+            <li>
+              <a href="https://github.com/vitejs/vite" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#github-icon"></use>
+                </svg>
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://chat.vite.dev/" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#discord-icon"></use>
+                </svg>
+                Discord
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/vite_js" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#x-icon"></use>
+                </svg>
+                X.com
+              </a>
+            </li>
+            <li>
+              <a href="https://bsky.app/profile/vite.dev" target="_blank">
+                <svg
+                  className="button-icon"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <use href="/icons.svg#bluesky-icon"></use>
+                </svg>
+                Bluesky
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div className="ticks"></div>
+      <section id="spacer"></section>
+    </>
+  )
 }
+
+export default App
