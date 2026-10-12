@@ -42,9 +42,9 @@ npm run dev
 ## 📋 3. ตารางส่วนร่วมของสมาชิก (Contribution Table)
 | ชื่อ-สกุล | รหัสนักศึกษา | ชิ้นงานที่รับผิดชอบ (ไฟล์ / Component / Route / DSA) | ช่วงที่นำเสนอในคลิป |
 | :--- | :--- | :--- | :--- |
-| **[ชื่อสมาชิกคนที่ 1]** | [รหัสนักศึกษา] | • **Frontend State & Navigation:** `src/App.jsx`, `src/components/WelcomePage.jsx`<br>• **UX Flow Improvement:** ระบบ Authentication State และการเปลี่ยนผ่านหน้าจอ (Page Router)<br>• **Design System:** `src/index.css` และ Responsive Layout | **0:00 - 2:30**<br>(ช่วงที่ 1, 2 และ 3) |
-| **[ชื่อสมาชิกคนที่ 2]** | [รหัสนักศึกษา] | • **Backend Express:** `backend/server.js` (API Proxy ซ่อน Key, Validation & Route `/api/events`)<br>• **Main Feed Component:** `src/components/HomePage.jsx`<br>• **UX States:** Loading / Empty / Error Handling | **2:30 - 5:00**<br>(ช่วงที่ 3 และ 4) |
-| **[ชื่อของคุณ]** | [รหัสนักศึกษา] | • **Booking Component & Seatmap:** `src/components/BookingPage.jsx` (ผังที่นั่ง SVG & Ticket Selector)<br>• **DSA Integration:**<br> - Custom Selection Sort ($O(n^2)$) ในหน้า Feed<br> - Stack ($O(1)$) ระบบ Undo เลือกโซนบัตร<br> - Queue ($O(1)$) จำลองระบบคิวจองบัตร | **5:00 - 7:00**<br>(ช่วงที่ 5 และ 6) |
+| น.ส.ภิญญดา กล้าศึก | 681310407 | • **Frontend State & Navigation:** `src/App.jsx`, `src/components/WelcomePage.jsx`<br>• **UX Flow Improvement:** ระบบ Authentication State และการเปลี่ยนผ่านหน้าจอ (Page Router)<br>• **Design System:** `src/index.css` และ Responsive Layout | **0:00 - 2:30**<br>(ช่วงที่ 1, 2 และ 3) |
+| น.ส.ปพิชญา วรรณศรี | 681310641 | • **Backend Express:** `backend/server.js` (API Proxy ซ่อน Key, Validation & Route `/api/events`)<br>• **Main Feed Component:** `src/components/HomePage.jsx`<br>• **UX States:** Loading / Empty / Error Handling | **2:30 - 5:00**<br>(ช่วงที่ 3 และ 4) |
+| น.ส.สุปรียา หงษี | 681310646 | • **Booking Component & Seatmap:** `src/components/BookingPage.jsx` (ผังที่นั่ง SVG & Ticket Selector)<br>• **DSA Integration:**<br> - Custom Selection Sort ($O(n^2)$) ในหน้า Feed<br> - Stack ($O(1)$) ระบบ Undo เลือกโซนบัตร<br> - Queue ($O(1)$) จำลองระบบคิวจองบัตร | **5:00 - 7:00**<br>(ช่วงที่ 5 และ 6) |
 
 ## 🔄 4. ตารางข้อแนะนำจากงานแรก และสิ่งที่แก้ (Before / After Table)
 | ข้อแนะนำจากงานแรก | สิ่งที่แก้ในงานนี้ | หลักฐาน Before / After |
